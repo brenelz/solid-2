@@ -1,12 +1,10 @@
-import { createSignal } from 'solid-js'
+import DerivedSignalsParent from './DerivedSignalsParent';
 
 function App() {
-  const [count, setCount] = createSignal(0)
-
   return (
     <>
-      {count()}
-      <button onClick={() => setCount(count() + 1)}>Increment</button>
+      <h1>Derived Signals</h1>
+      <DerivedSignalsParent />
     </>
   )
 }
