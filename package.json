@@ -1,0 +1,20 @@
+{
+  "name": "solid-2",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@solidjs/web": "2.0.0-experimental.0",
+    "solid-js": "2.0.0-experimental.5",
+    "vite-plugin-solid": "https://pkg.pr.new/vite-plugin-solid@215"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5"
+  }
+}
