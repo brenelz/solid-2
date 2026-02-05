@@ -9,9 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@solidjs/web": "2.0.0-experimental.12",
-    "solid-js": "2.0.0-experimental.12",
-    "vite-plugin-solid": "https://pkg.pr.new/vite-plugin-solid@8aeea16"
+    "@solidjs/web": "2.0.0-experimental.13",
+    "solid-js": "2.0.0-experimental.13",
+    "vite-plugin-solid": "https://pkg.pr.new/vite-plugin-solid@e82bce6"
   },
   "devDependencies": {
     "typescript": "~5.8.3",
