@@ -1,13 +1,15 @@
-import { createMemo, Loading } from "solid-js"
+import { DetailPanel } from "./components/DetailPanel"
+import { IssueColumn } from "./components/IssueColumn"
+import { Sidebar } from "./components/Sidebar"
+import { comments, issues, labels } from "./data"
+import "./App.css"
 
 export default function App() {
-  const asyncValue = createMemo(async () => {
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    return "Hello World"
-  })
   return (
-    <Loading fallback="Loading...">
-      {asyncValue()}
-    </Loading>
+    <main class="app-shell">
+      <Sidebar labels={labels} />
+      <IssueColumn issues={issues} />
+      <DetailPanel comments={comments} />
+    </main>
   )
 }
