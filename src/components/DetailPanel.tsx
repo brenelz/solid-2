@@ -1,64 +1,64 @@
-import { For } from "solid-js"
-import type { Comment } from "../data"
+import { createMemo, For, isPending, Loading } from "solid-js"
+import type { Comment, Issue } from "../data"
+import { getComments } from "../api";
 
-type DetailPanelProps = {
-  comments: Comment[]
-}
+export function DetailPanel(props: { issue: Issue }) {
+  const comments = createMemo(() => getComments(props.issue.id));;
 
-export function DetailPanel(props: DetailPanelProps) {
   return (
-    <section class="detail-panel" aria-label="Selected issue details">
-      <IssueHeader />
-      <IssueSummary />
-      <Timeline comments={props.comments} />
-      <CommentComposer />
+    <section class="detail-panel" aria-label="Selected issue details" style={{ opacity: isPending(() => props.issue) ? 0.5 : 1 }}>
+      <IssueHeader issue={props.issue} />
+      <IssueSummary issue={props.issue} />
+      <Loading fallback={<div>Loading Comments...</div>}>
+        <Timeline issue={props.issue} comments={comments()} />
+        <CommentComposer />
+      </Loading>
     </section>
   )
 }
 
-function IssueHeader() {
+function IssueHeader(props: { issue: Issue }) {
   return (
     <header class="detail-header">
       <div>
         <p class="eyebrow">Selected Issue</p>
-        <h2>Comment timeline duplicates after reconnect</h2>
+        <h2>{props.issue.title}</h2>
       </div>
-      <span class="pill">Open</span>
+      <span class="pill">{props.issue.status}</span>
     </header>
   )
 }
 
-function IssueSummary() {
+function IssueSummary(props: { issue: Issue }) {
   return (
     <div class="summary-card">
       <div class="summary-grid">
         <div>
           <span>Assignee</span>
-          <strong>Eli Park</strong>
+          <strong>{props.issue.assignee}</strong>
         </div>
         <div>
           <span>Milestone</span>
-          <strong>2.0 beta</strong>
+          <strong>{props.issue.milestone}</strong>
         </div>
         <div>
           <span>Priority</span>
-          <strong>High</strong>
+          <strong>{props.issue.priority}</strong>
         </div>
       </div>
       <p>
-        Reconnecting to the event stream can duplicate the latest timeline item. The static layout separates the
-        route shell, issue detail, comments, and action composer so async behavior can be layered in later.
+        {props.issue.description}
       </p>
     </div>
   )
 }
 
-function Timeline(props: DetailPanelProps) {
+function Timeline(props: { issue: Issue, comments: Comment[] }) {
   return (
     <section class="timeline" aria-labelledby="timeline-heading">
       <div class="section-heading">
         <h3 id="timeline-heading">Timeline</h3>
-        <span>3 updates</span>
+        <span>{props.comments.length} updates</span>
       </div>
       <For each={props.comments}>{comment => <CommentCard comment={comment} />}</For>
     </section>

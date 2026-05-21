@@ -1,4 +1,4 @@
-import { For } from "solid-js"
+import { For, Loading } from "solid-js"
 
 type SidebarProps = {
   labels: string[]
@@ -30,12 +30,15 @@ export function Sidebar(props: SidebarProps) {
         </a>
       </nav>
 
-      <section class="label-card" aria-labelledby="labels-heading">
-        <h2 id="labels-heading">Labels</h2>
-        <div class="label-list">
-          <For each={props.labels}>{label => <span class="label-chip">{label}</span>}</For>
-        </div>
-      </section>
+
+      <Loading>
+        <section class="label-card" aria-labelledby="labels-heading">
+          <h2 id="labels-heading">Labels</h2>
+          <div class="label-list">
+            <For each={props.labels}>{label => <span class="label-chip">{label}</span>}</For>
+          </div>
+        </section>
+      </Loading>
     </aside>
   )
 }
