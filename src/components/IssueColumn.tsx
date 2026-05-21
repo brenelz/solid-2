@@ -1,11 +1,8 @@
-import { For, isPending } from "solid-js"
+import { For } from "solid-js"
 import type { Issue } from "../data"
 
 type IssueColumnProps = {
   issues: readonly Issue[]
-  selectIssue: (issue: Issue) => void
-  selectedIssue: Issue
-  getCommentCount: (issue: Issue) => number
 }
 
 export function IssueColumn(props: IssueColumnProps) {
@@ -19,18 +16,18 @@ export function IssueColumn(props: IssueColumnProps) {
       </header>
 
       <div class="issue-list">
-        <For each={props.issues}>{issue => <IssueCard issue={issue} selectedIssue={props.selectedIssue} selectIssue={props.selectIssue} commentCount={props.getCommentCount(issue)} />}</For>
+        <For each={props.issues}>{issue => <IssueCard issue={issue} />}</For>
       </div>
     </section>
   )
 }
 
-function IssueCard(props: { issue: Issue, selectedIssue: Issue, selectIssue: (issue: Issue) => void, commentCount: number }) {
+function IssueCard(props: { issue: Issue }) {
   return (
     <article
-      class={props.selectedIssue.id === props.issue.id ? "issue-card active" : "issue-card"}
-      onClick={() => props.selectIssue(props.issue)}
-      style={{ cursor: "pointer", opacity: props.selectedIssue.id === props.issue.id && isPending(() => props.selectedIssue) ? 0.5 : 1 }}>
+      class={"issue-card"}
+      onClick={() => { }}
+      style={{ cursor: "pointer", opacity: 1 }}>
       <div class="issue-card-header">
         <span class="status-dot" aria-hidden="true" />
         <span class="issue-number">#{props.issue.id}</span>
@@ -43,7 +40,7 @@ function IssueCard(props: { issue: Issue, selectedIssue: Issue, selectIssue: (is
         <span>{props.issue.updated}</span>
       </div>
       <div class="issue-stats" aria-label="Issue activity">
-        <span>{props.commentCount} comments</span>
+        <span>{props.issue.comments} comments</span>
         <span>{props.issue.reactions} reactions</span>
       </div>
     </article >

@@ -1,31 +1,15 @@
-import { action, createOptimisticStore, createSignal, flush, For, isPending, Loading, onSettled, refresh, Show } from "solid-js"
-import type { Comment, Issue } from "../data"
-import { getComments } from "../api";
-import { LoadingState } from "./LoadingState";
+import { createSignal, For } from "solid-js"
+import { commentsByIssueId, type Comment, type Issue } from "../data"
 
-export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: number, comment: string) => Promise<unknown> }) {
-  const [optimisticComments, setOptimisticComments] = createOptimisticStore(() => getComments(props.issue.id), []);
-
-  const addCommentAction = action(function* (comment: string) {
-    setOptimisticComments(comments => {
-      comments.push({ author: "Brenley Dueck", body: comment });
-    });
-    yield props.saveCommentAction(props.issue.id, comment);
-    refresh(optimisticComments);
-  });
-
+export function DetailPanel(props: { issue: Issue }) {
   return (
-    <section class="detail-panel" aria-label="Selected issue details" style={{ opacity: isPending(() => props.issue) ? 0.5 : 1 }}>
+    <section class="detail-panel" aria-label="Selected issue details">
       <IssueHeader issue={props.issue} />
       <IssueSummary issue={props.issue} />
-      <Loading fallback={<LoadingState label="Loading comments" detail="Preparing the timeline." />}>
-        <div style={{ opacity: 1 }}>
-          <Timeline issue={props.issue} comments={optimisticComments} />
-        </div>
-        <Show when={props.issue.id} keyed>
-          <CommentComposer addCommentAction={addCommentAction} />
-        </Show>
-      </Loading>
+      <div style={{ opacity: 1 }}>
+        <Timeline issue={props.issue} comments={commentsByIssueId[props.issue.id] ?? []} />
+      </div>
+      <CommentComposer />
     </section>
   )
 }
@@ -85,7 +69,7 @@ function CommentCard(props: { comment: Comment }) {
       <div>
         <div class="comment-heading">
           <strong>{props.comment.author}</strong>
-          <span>{props.comment.time ?? "Saving..."}</span>
+          <span>{props.comment.time}</span>
         </div>
         <p>{props.comment.body}</p>
       </div>
@@ -93,21 +77,11 @@ function CommentCard(props: { comment: Comment }) {
   )
 }
 
-function CommentComposer(props: { addCommentAction: (comment: string) => void }) {
-  let textareaRef: HTMLTextAreaElement | undefined;
-
+function CommentComposer() {
   const [comment, setComment] = createSignal("");
   const submitComment = () => {
-    const body = comment().trim();
-    if (!body) return;
-    props.addCommentAction(body);
-    flush();
-    setComment("");
+    console.log('submitting');
   };
-
-  onSettled(() => {
-    textareaRef?.focus();
-  });
 
   return (
     <form class="composer" onSubmit={e => {
@@ -129,7 +103,7 @@ function CommentComposer(props: { addCommentAction: (comment: string) => void })
         }}
       />
       <div class="composer-actions">
-        <button type="submit" disabled={!comment().trim()} style={{ opacity: !comment().trim() ? 0.5 : 1 }}>Comment</button>
+        <button type="submit">Comment</button>
       </div>
     </form>
   )
