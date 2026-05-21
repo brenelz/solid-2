@@ -1,16 +1,16 @@
 import { action, createOptimisticStore, createSignal, flush, For, isPending, Loading, onSettled, refresh, Show } from "solid-js"
 import type { Comment, Issue } from "../data"
-import { addComment, getComments } from "../api";
+import { getComments } from "../api";
 import { LoadingState } from "./LoadingState";
 
-export function DetailPanel(props: { issue: Issue }) {
+export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: number, comment: string) => Promise<unknown> }) {
   const [optimisticComments, setOptimisticComments] = createOptimisticStore(() => getComments(props.issue.id), []);
 
   const addCommentAction = action(function* (comment: string) {
     setOptimisticComments(comments => {
       comments.push({ author: "Brenley Dueck", body: comment });
     });
-    yield addComment(props.issue.id, comment);
+    yield props.saveCommentAction(props.issue.id, comment);
     refresh(optimisticComments);
   });
 

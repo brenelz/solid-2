@@ -2,7 +2,7 @@ import { commentsByIssueId, issues } from "./data"
 
 export const getIssues = async () => {
     await new Promise(resolve => setTimeout(resolve, 400))
-    return issues;
+    return structuredClone(issues);
 }
 export const getComments = async (issueId: number) => {
     await new Promise(resolve => setTimeout(resolve, 400))
@@ -16,9 +16,5 @@ export const addComment = async (issueId: number, comment: string) => {
         time: new Date().toISOString(),
         body: comment,
     });
-    const issue = issues.find(i => i.id === issueId);
-    if (issue) {
-        issue.comments += 1;
-    }
     return commentsByIssueId[issueId];
 }

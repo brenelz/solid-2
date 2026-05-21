@@ -1,11 +1,11 @@
-import { For, isPending, Loading } from "solid-js"
+import { For, isPending } from "solid-js"
 import type { Issue } from "../data"
-import { LoadingState } from "./LoadingState"
 
 type IssueColumnProps = {
   issues: readonly Issue[]
   selectIssue: (issue: Issue) => void
   selectedIssue: Issue
+  getCommentCount: (issue: Issue) => number
 }
 
 export function IssueColumn(props: IssueColumnProps) {
@@ -19,24 +19,13 @@ export function IssueColumn(props: IssueColumnProps) {
       </header>
 
       <div class="issue-list">
-        <For each={props.issues}>{issue => <IssueCard issue={issue} selectedIssue={props.selectedIssue} selectIssue={props.selectIssue} />}</For>
+        <For each={props.issues}>{issue => <IssueCard issue={issue} selectedIssue={props.selectedIssue} selectIssue={props.selectIssue} commentCount={props.getCommentCount(issue)} />}</For>
       </div>
     </section>
   )
 }
 
-function IssueListLoading() {
-  return (
-    <>
-      <LoadingState label="Loading issues" detail="Fetching latest project activity." />
-      <div class="issue-card loading-card" aria-hidden="true" />
-      <div class="issue-card loading-card" aria-hidden="true" />
-      <div class="issue-card loading-card" aria-hidden="true" />
-    </>
-  )
-}
-
-function IssueCard(props: { issue: Issue, selectedIssue: Issue, selectIssue: (issue: Issue) => void }) {
+function IssueCard(props: { issue: Issue, selectedIssue: Issue, selectIssue: (issue: Issue) => void, commentCount: number }) {
   return (
     <article
       class={props.selectedIssue.id === props.issue.id ? "issue-card active" : "issue-card"}
@@ -54,7 +43,7 @@ function IssueCard(props: { issue: Issue, selectedIssue: Issue, selectIssue: (is
         <span>{props.issue.updated}</span>
       </div>
       <div class="issue-stats" aria-label="Issue activity">
-        <span>{props.issue.comments} comments</span>
+        <span>{props.commentCount} comments</span>
         <span>{props.issue.reactions} reactions</span>
       </div>
     </article >
