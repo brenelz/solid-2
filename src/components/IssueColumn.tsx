@@ -3,7 +3,7 @@ import type { Issue } from "../data"
 import { LoadingState } from "./LoadingState"
 
 type IssueColumnProps = {
-  issues: Issue[]
+  issues: readonly Issue[]
   selectIssue: (issue: Issue) => void
   selectedIssue: Issue
 }

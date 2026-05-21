@@ -1,4 +1,4 @@
-import { action, createOptimisticStore, createSignal, flush, For, isPending, Loading, refresh } from "solid-js"
+import { action, createOptimisticStore, createSignal, flush, For, isPending, Loading, onSettled, refresh, Show } from "solid-js"
 import type { Comment, Issue } from "../data"
 import { addComment, getComments } from "../api";
 import { LoadingState } from "./LoadingState";
@@ -22,7 +22,9 @@ export function DetailPanel(props: { issue: Issue }) {
         <div style={{ opacity: 1 }}>
           <Timeline issue={props.issue} comments={optimisticComments} />
         </div>
-        <CommentComposer addCommentAction={addCommentAction} />
+        <Show when={props.issue.id} keyed>
+          <CommentComposer addCommentAction={addCommentAction} />
+        </Show>
       </Loading>
     </section>
   )
@@ -92,6 +94,8 @@ function CommentCard(props: { comment: Comment }) {
 }
 
 function CommentComposer(props: { addCommentAction: (comment: string) => void }) {
+  let textareaRef: HTMLTextAreaElement | undefined;
+
   const [comment, setComment] = createSignal("");
   const submitComment = () => {
     const body = comment().trim();
@@ -100,6 +104,10 @@ function CommentComposer(props: { addCommentAction: (comment: string) => void })
     flush();
     setComment("");
   };
+
+  onSettled(() => {
+    textareaRef?.focus();
+  });
 
   return (
     <form class="composer" onSubmit={e => {
@@ -121,7 +129,7 @@ function CommentComposer(props: { addCommentAction: (comment: string) => void })
         }}
       />
       <div class="composer-actions">
-        <button type="submit" disabled={comment().length === 0} style={{ opacity: comment().length === 0 ? 0.5 : 1 }}>Comment</button>
+        <button type="submit" disabled={!comment().trim()} style={{ opacity: !comment().trim() ? 0.5 : 1 }}>Comment</button>
       </div>
     </form>
   )
