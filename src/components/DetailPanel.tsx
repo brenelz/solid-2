@@ -1,17 +1,40 @@
-import { createMemo, For, isPending, Loading } from "solid-js"
+import { action, createMemo, createOptimistic, createSignal, flush, For, isPending, Loading, refresh } from "solid-js"
 import type { Comment, Issue } from "../data"
-import { getComments } from "../api";
+import { addComment, getComments } from "../api";
+import { LoadingState } from "./LoadingState";
 
 export function DetailPanel(props: { issue: Issue }) {
-  const comments = createMemo(() => getComments(props.issue.id));;
+  const comments = createMemo(() => getComments(props.issue.id));
+  const [optimisticComments, setOptimisticComments] = createOptimistic(comments);
+  // const [pendingCommentCount, setPendingCommentCount] = createOptimistic(0);
+  // const addingComment = () => pendingCommentCount() > 0;
+
+  // const addCommentAction = action(function* (comment: string) {
+  //   // setOptimisticComments(prev => [...prev, { author: "Brenley Dueck", body: comment }]);
+  //   setPendingCommentCount(count => count + 1);
+  //   try {
+  //     yield addComment(props.issue.id, comment);
+  //     yield refresh(comments);
+  //   } finally {
+  //     setPendingCommentCount(count => Math.max(0, count - 1));
+  //   }
+  // });
+
+  const addCommentAction = action(function* (comment: string) {
+    setOptimisticComments(prev => [...prev, { author: "Brenley Dueck", body: comment }]);
+    yield addComment(props.issue.id, comment);
+    refresh(comments);
+  });
 
   return (
     <section class="detail-panel" aria-label="Selected issue details" style={{ opacity: isPending(() => props.issue) ? 0.5 : 1 }}>
       <IssueHeader issue={props.issue} />
       <IssueSummary issue={props.issue} />
-      <Loading fallback={<div>Loading Comments...</div>}>
-        <Timeline issue={props.issue} comments={comments()} />
-        <CommentComposer />
+      <Loading fallback={<LoadingState label="Loading comments" detail="Preparing the timeline." />}>
+        <div style={{ opacity: 1 }}>
+          <Timeline issue={props.issue} comments={optimisticComments()} />
+        </div>
+        <CommentComposer addCommentAction={addCommentAction} />
       </Loading>
     </section>
   )
@@ -72,7 +95,7 @@ function CommentCard(props: { comment: Comment }) {
       <div>
         <div class="comment-heading">
           <strong>{props.comment.author}</strong>
-          <span>{props.comment.time}</span>
+          <span>{props.comment.time ?? "Saving..."}</span>
         </div>
         <p>{props.comment.body}</p>
       </div>
@@ -80,14 +103,35 @@ function CommentCard(props: { comment: Comment }) {
   )
 }
 
-function CommentComposer() {
+function CommentComposer(props: { addCommentAction: (comment: string) => void }) {
+  const [comment, setComment] = createSignal("");
+  const submitComment = () => {
+    props.addCommentAction(comment());
+    flush();
+    setComment("");
+  };
+
   return (
-    <form class="composer">
+    <form class="composer" onSubmit={e => {
+      e.preventDefault();
+      submitComment();
+    }}>
       <label for="comment">Add a comment</label>
-      <textarea id="comment" rows="4" placeholder="Leave a project update..." />
+      <textarea
+        id="comment"
+        rows="4"
+        placeholder="Leave a project update..."
+        value={comment()}
+        onInput={e => setComment(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            submitComment();
+          }
+        }}
+      />
       <div class="composer-actions">
-        <button class="secondary" type="button">Add reaction</button>
-        <button type="button">Comment</button>
+        <button type="submit">Comment</button>
       </div>
     </form>
   )

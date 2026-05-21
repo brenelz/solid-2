@@ -1,5 +1,6 @@
 import { For, isPending, Loading } from "solid-js"
 import type { Issue } from "../data"
+import { LoadingState } from "./LoadingState"
 
 type IssueColumnProps = {
   issues: Issue[]
@@ -15,21 +16,23 @@ export function IssueColumn(props: IssueColumnProps) {
           <p class="eyebrow">Project</p>
           <h2>solid-core</h2>
         </div>
-        <button type="button">New Issue</button>
       </header>
 
-      <div class="filter-row" aria-label="Issue filters">
-        <button class="active" type="button">Open</button>
-        <button type="button">Mine</button>
-        <button type="button">High signal</button>
-      </div>
-
       <div class="issue-list">
-        <Loading fallback={<div>Loading Issues...</div>}>
-          <For each={props.issues}>{issue => <IssueCard issue={issue} selectedIssue={props.selectedIssue} selectIssue={props.selectIssue} />}</For>
-        </Loading>
+        <For each={props.issues}>{issue => <IssueCard issue={issue} selectedIssue={props.selectedIssue} selectIssue={props.selectIssue} />}</For>
       </div>
     </section>
+  )
+}
+
+function IssueListLoading() {
+  return (
+    <>
+      <LoadingState label="Loading issues" detail="Fetching latest project activity." />
+      <div class="issue-card loading-card" aria-hidden="true" />
+      <div class="issue-card loading-card" aria-hidden="true" />
+      <div class="issue-card loading-card" aria-hidden="true" />
+    </>
   )
 }
 
@@ -38,7 +41,7 @@ function IssueCard(props: { issue: Issue, selectedIssue: Issue, selectIssue: (is
     <article
       class={props.selectedIssue.id === props.issue.id ? "issue-card active" : "issue-card"}
       onClick={() => props.selectIssue(props.issue)}
-      style={{ cursor: "pointer", opacity: props.selectedIssue.id === props.issue.id && isPending(() => props.selectedIssue) ? 0.7 : 1 }}>
+      style={{ cursor: "pointer", opacity: props.selectedIssue.id === props.issue.id && isPending(() => props.selectedIssue) ? 0.5 : 1 }}>
       <div class="issue-card-header">
         <span class="status-dot" aria-hidden="true" />
         <span class="issue-number">#{props.issue.id}</span>

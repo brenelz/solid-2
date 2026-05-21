@@ -16,7 +16,7 @@ export type Issue = {
 
 export type Comment = {
   author: string
-  time: string
+  time?: string
   body: string
 }
 

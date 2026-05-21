@@ -4,7 +4,7 @@
 
 .app-shell {
   display: grid;
-  grid-template-columns: 260px minmax(320px, 430px) minmax(0, 1fr);
+  grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
   min-height: 100vh;
   background:
     radial-gradient(circle at top left, rgba(99, 102, 241, 0.32), transparent 34rem),
@@ -13,38 +13,10 @@
   color: #f7f3ea;
 }
 
-.sidebar,
 .issue-column,
 .detail-panel {
   min-width: 0;
   padding: 24px;
-}
-
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(12, 15, 25, 0.82);
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.brand-mark {
-  display: grid;
-  width: 46px;
-  height: 46px;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 16px;
-  background: linear-gradient(135deg, #7c3aed, #06b6d4);
-  color: #ffffff;
-  font-weight: 800;
-  letter-spacing: -0.08em;
 }
 
 .eyebrow {
@@ -81,51 +53,6 @@ h3 {
   letter-spacing: -0.03em;
 }
 
-.nav-list {
-  display: grid;
-  gap: 8px;
-}
-
-.nav-item {
-  display: flex;
-  justify-content: space-between;
-  border-radius: 14px;
-  padding: 10px 12px;
-  color: #a6afc3;
-  text-decoration: none;
-}
-
-.nav-item.active,
-.nav-item:hover {
-  background: rgba(124, 58, 237, 0.16);
-  color: #ffffff;
-}
-
-.nav-item span {
-  color: #77839b;
-}
-
-.label-card {
-  margin-top: auto;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 22px;
-  padding: 18px;
-  background: rgba(18, 23, 37, 0.88);
-}
-
-.label-card h2 {
-  margin-bottom: 14px;
-  font-size: 1rem;
-  letter-spacing: -0.02em;
-}
-
-.label-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.label-chip,
 .pill,
 .issue-status {
   display: inline-flex;
@@ -153,6 +80,10 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+}
+
+.issue-column .toolbar {
+  margin-bottom: 28px;
 }
 
 button,
@@ -233,6 +164,66 @@ button.secondary,
   border-color: rgba(129, 140, 248, 0.68);
   background: rgba(27, 34, 55, 0.96);
   box-shadow: 0 22px 70px rgba(79, 70, 229, 0.22);
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: rgba(18, 23, 37, 0.72);
+  color: #cad2e4;
+}
+
+.app-shell > .loading-state {
+  align-self: start;
+  margin: 24px;
+}
+
+.loading-state span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.loading-state strong {
+  color: #f7f3ea;
+}
+
+.loading-state small {
+  color: #8f9bb3;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(143, 155, 179, 0.32);
+  border-top-color: #8deaff;
+  border-radius: 50%;
+  animation: loading-spin 0.8s linear infinite;
+}
+
+.loading-card {
+  min-height: 104px;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent),
+    rgba(18, 23, 37, 0.58);
+  background-size: 220px 100%, auto;
+  background-position: -220px 0, 0 0;
+  animation: loading-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loading-shimmer {
+  to {
+    background-position: calc(100% + 220px) 0, 0 0;
+  }
 }
 
 .status-dot {
@@ -349,12 +340,12 @@ button.secondary,
 
 @media (max-width: 1040px) {
   .app-shell {
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
   }
 
   .detail-panel {
-    grid-column: 1 / -1;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    grid-column: auto;
+    border-top: 0;
   }
 }
 
@@ -364,16 +355,18 @@ button.secondary,
     grid-template-columns: 1fr;
   }
 
-  .sidebar,
   .issue-column {
     border-right: 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  .sidebar,
   .issue-column,
   .detail-panel {
     padding: 18px;
+  }
+
+  .app-shell > .loading-state {
+    margin: 18px;
   }
 
   .toolbar,
