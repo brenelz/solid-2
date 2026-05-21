@@ -1,29 +1,17 @@
-import { action, createMemo, createOptimistic, createSignal, flush, For, isPending, Loading, refresh } from "solid-js"
+import { action, createOptimisticStore, createSignal, flush, For, isPending, Loading, refresh } from "solid-js"
 import type { Comment, Issue } from "../data"
 import { addComment, getComments } from "../api";
 import { LoadingState } from "./LoadingState";
 
 export function DetailPanel(props: { issue: Issue }) {
-  const comments = createMemo(() => getComments(props.issue.id));
-  const [optimisticComments, setOptimisticComments] = createOptimistic(comments);
-  // const [pendingCommentCount, setPendingCommentCount] = createOptimistic(0);
-  // const addingComment = () => pendingCommentCount() > 0;
-
-  // const addCommentAction = action(function* (comment: string) {
-  //   // setOptimisticComments(prev => [...prev, { author: "Brenley Dueck", body: comment }]);
-  //   setPendingCommentCount(count => count + 1);
-  //   try {
-  //     yield addComment(props.issue.id, comment);
-  //     yield refresh(comments);
-  //   } finally {
-  //     setPendingCommentCount(count => Math.max(0, count - 1));
-  //   }
-  // });
+  const [optimisticComments, setOptimisticComments] = createOptimisticStore(() => getComments(props.issue.id), []);
 
   const addCommentAction = action(function* (comment: string) {
-    setOptimisticComments(prev => [...prev, { author: "Brenley Dueck", body: comment }]);
+    setOptimisticComments(comments => {
+      comments.push({ author: "Brenley Dueck", body: comment });
+    });
     yield addComment(props.issue.id, comment);
-    refresh(comments);
+    refresh(optimisticComments);
   });
 
   return (
@@ -32,7 +20,7 @@ export function DetailPanel(props: { issue: Issue }) {
       <IssueSummary issue={props.issue} />
       <Loading fallback={<LoadingState label="Loading comments" detail="Preparing the timeline." />}>
         <div style={{ opacity: 1 }}>
-          <Timeline issue={props.issue} comments={optimisticComments()} />
+          <Timeline issue={props.issue} comments={optimisticComments} />
         </div>
         <CommentComposer addCommentAction={addCommentAction} />
       </Loading>
@@ -76,7 +64,7 @@ function IssueSummary(props: { issue: Issue }) {
   )
 }
 
-function Timeline(props: { issue: Issue, comments: Comment[] }) {
+function Timeline(props: { issue: Issue, comments: readonly Comment[] }) {
   return (
     <section class="timeline" aria-labelledby="timeline-heading">
       <div class="section-heading">
@@ -106,7 +94,9 @@ function CommentCard(props: { comment: Comment }) {
 function CommentComposer(props: { addCommentAction: (comment: string) => void }) {
   const [comment, setComment] = createSignal("");
   const submitComment = () => {
-    props.addCommentAction(comment());
+    const body = comment().trim();
+    if (!body) return;
+    props.addCommentAction(body);
     flush();
     setComment("");
   };
@@ -131,7 +121,7 @@ function CommentComposer(props: { addCommentAction: (comment: string) => void })
         }}
       />
       <div class="composer-actions">
-        <button type="submit">Comment</button>
+        <button type="submit" disabled={comment().length === 0} style={{ opacity: comment().length === 0 ? 0.5 : 1 }}>Comment</button>
       </div>
     </form>
   )
