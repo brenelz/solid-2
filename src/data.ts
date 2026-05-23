@@ -15,8 +15,10 @@ export type Issue = {
 }
 
 export type Comment = {
+  id: string
   author: string
   time?: string
+  createdAt: string
   body: string
 }
 
@@ -88,53 +90,71 @@ export const issues: Issue[] = [
 export const commentsByIssueId: CommentsByIssueId = {
   42: [
     {
+      id: crypto.randomUUID(),
       author: "Maya Chen",
       time: "8 min ago",
+      createdAt: "2026-05-23T00:00:00.000Z",
       body: "The reconnect path is replaying the latest server event after the local cache has already applied it.",
     },
     {
+      id: crypto.randomUUID(),
       author: "Eli Park",
       time: "5 min ago",
+      createdAt: "2026-05-23T00:00:00.000Z",
       body: "I can reproduce this with two tabs open. It only happens when the second tab regains focus first.",
     },
     {
+      id: crypto.randomUUID(),
       author: "Noah Reed",
       time: "Just now",
+      createdAt: "2026-05-23T00:00:00.000Z",
       body: "Let's keep the detail panel and comments panel separate so each can get its own data path later.",
     },
   ],
   39: [
     {
+      id: crypto.randomUUID(),
       author: "Jon Bell",
       time: "29 min ago",
+      createdAt: "2026-05-23T00:00:00.000Z",
       body: "The route query changes correctly, but the selected issue signal gets reset when the filtered list re-renders.",
     },
     {
+      id: crypto.randomUUID(),
       author: "Maya Chen",
       time: "20 min ago",
+      createdAt: "2026-05-23T00:00:00.000Z",
       body: "Let's preserve the selected id and only fall back to the first issue if it is no longer in the filtered results.",
     },
   ],
   37: [
     {
+      id: crypto.randomUUID(),
       author: "Priya Shah",
       time: "58 min ago",
+      createdAt: "2026-05-23T00:00:00.000Z",
       body: "The menu items are reachable with Tab, but the current focus ring is too subtle against the dark panel.",
     },
     {
+      id: crypto.randomUUID(),
       author: "Alex Kim",
       time: "44 min ago",
+      createdAt: "2026-05-23T00:00:00.000Z",
       body: "I can pair on the visual treatment once the keyboard states are wired up.",
     },
   ],
   31: [
     {
+      id: crypto.randomUUID(),
       author: "Alex Kim",
       time: "Yesterday",
+      createdAt: "2026-05-23T00:00:00.000Z",
       body: "The overflow starts below 420px wide when the progress label and percentage wrap onto separate lines.",
     },
     {
+      id: crypto.randomUUID(),
       author: "Noah Reed",
+      createdAt: "2026-05-23T00:00:00.000Z",
       time: "Yesterday",
       body: "A stacked layout for the progress metadata should keep the card readable on smaller screens.",
     },

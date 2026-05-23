@@ -1,4 +1,4 @@
-import { commentsByIssueId, issues } from "./data"
+import { commentsByIssueId, issues, type Comment } from "./data"
 
 export const getIssues = async () => {
     await new Promise(resolve => setTimeout(resolve, 400))
@@ -9,12 +9,11 @@ export const getComments = async (issueId: number) => {
     return structuredClone(commentsByIssueId[issueId] ?? []);
 }
 
-export const addComment = async (issueId: number, comment: string) => {
+export const addComment = async (issueId: number, comment: Comment) => {
     await new Promise(resolve => setTimeout(resolve, 2000))
-    commentsByIssueId[issueId].push({
-        author: "Brenley Dueck",
-        time: new Date().toISOString(),
-        body: comment,
-    });
+    if (Math.random() < 0.5) {
+        throw new Error("Failed to add comment");
+    }
+    commentsByIssueId[issueId].push({ ...comment, time: "Just now" });
     return commentsByIssueId[issueId];
 }

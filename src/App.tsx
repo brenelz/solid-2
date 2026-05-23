@@ -3,8 +3,8 @@ import { IssueColumn } from "./components/IssueColumn"
 import { LoadingState } from "./components/LoadingState"
 import { addComment, getIssues } from "./api"
 import "./App.css"
-import { action, createOptimistic, createSignal, createStore, Loading } from "solid-js"
-import type { Issue } from "./data"
+import { action, createOptimistic, createSignal, createStore, latest, Loading } from "solid-js"
+import type { Comment, Issue } from "./data"
 
 export default function App() {
   const [issues, setIssues] = createStore(getIssues, []);
@@ -19,7 +19,7 @@ export default function App() {
     return selectedIssue().id === issue.id ? optimisticCommentCount() : issue.comments;
   }
 
-  const saveCommentAction = action(function* (issueId: number, comment: string) {
+  const saveCommentAction = action(function* (issueId: number, comment: Comment) {
     setOptimisticCommentCount(commentCount => commentCount + 1);
 
     const comments = yield addComment(issueId, comment);
@@ -34,7 +34,7 @@ export default function App() {
 
   return (
     <main class="app-shell">
-      <IssueColumn issues={issues} selectedIssue={selectedIssue()} selectIssue={selectIssue} getCommentCount={getCommentCount} />
+      <IssueColumn issues={issues} selectedIssue={latest(selectedIssue)} selectIssue={selectIssue} getCommentCount={getCommentCount} />
       <Loading fallback={<LoadingState label="Loading issue" detail="Opening the selected issue." />}>
         <DetailPanel issue={selectedIssue()} saveCommentAction={saveCommentAction} />
       </Loading>
