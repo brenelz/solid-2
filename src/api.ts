@@ -4,6 +4,25 @@ export const getIssues = async () => {
     await new Promise(resolve => setTimeout(resolve, 400))
     return structuredClone(issues);
 }
+
+export const searchIssues = async (query: string) => {
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    const search = query.trim().toLowerCase();
+    if (!search) return structuredClone(issues);
+
+    return structuredClone(issues.filter(issue => [
+        issue.title,
+        issue.area,
+        issue.status,
+        issue.author,
+        issue.assignee,
+        issue.milestone,
+        issue.priority,
+        issue.description,
+    ].some(value => value?.toLowerCase().includes(search))));
+}
+
 export const getComments = async (issueId: number) => {
     await new Promise(resolve => setTimeout(resolve, 400))
     return structuredClone(commentsByIssueId[issueId] ?? []);

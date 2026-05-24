@@ -1,13 +1,13 @@
 import { DetailPanel } from "./components/DetailPanel"
 import { IssueColumn } from "./components/IssueColumn"
-import { LoadingState } from "./components/LoadingState"
-import { addComment, addIssue, getIssues } from "./api"
+import { addComment, addIssue, searchIssues } from "./api"
 import "./App.css"
 import { action, createOptimistic, createSignal, createStore, flush, latest, Loading, refresh, Show } from "solid-js"
 import type { Comment, Issue, NewIssueInput } from "./data"
 
 export default function App() {
-  const [issues, setIssues] = createStore(getIssues, []);
+  const [searchQuery, setSearchQuery] = createSignal('');
+  const [issues, setIssues] = createStore(() => searchIssues(searchQuery()), []);
   const [selectedIssue, setSelectedIssue] = createSignal(() => issues[0]);
   const [isAddingIssue, setIsAddingIssue] = createSignal(false);
   const [optimisticCommentCount, setOptimisticCommentCount] = createOptimistic(() => selectedIssue().comments);
@@ -42,7 +42,7 @@ export default function App() {
 
   return (
     <main class="app-shell">
-      <IssueColumn issues={issues} selectedIssue={latest(selectedIssue)} selectIssue={selectIssue} getCommentCount={getCommentCount} isAddingIssue={isAddingIssue()} startAddingIssue={() => setIsAddingIssue(true)} />
+      <IssueColumn issues={issues} searchQuery={searchQuery()} setSearchQuery={setSearchQuery} selectedIssue={latest(selectedIssue)} selectIssue={selectIssue} getCommentCount={getCommentCount} isAddingIssue={isAddingIssue()} startAddingIssue={() => setIsAddingIssue(true)} />
       <Show when={isAddingIssue()} fallback={
         <DetailPanel issue={selectedIssue()} saveCommentAction={saveCommentAction} />
       }>

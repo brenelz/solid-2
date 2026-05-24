@@ -123,6 +123,18 @@ button.secondary,
   font-weight: 750;
 }
 
+.search-field span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.search-field small {
+  color: #8deaff;
+  font-size: 0.76rem;
+}
+
 .search-field input,
 .new-issue-page input,
 .new-issue-page textarea,
@@ -134,6 +146,14 @@ button.secondary,
   background: rgba(4, 7, 15, 0.78);
   color: #f7f3ea;
   outline: none;
+}
+
+.search-field input:focus,
+.new-issue-page input:focus,
+.new-issue-page textarea:focus,
+.composer textarea:focus {
+  border-color: rgba(129, 140, 248, 0.72);
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.14);
 }
 
 .search-field input,
@@ -172,6 +192,15 @@ button.secondary,
 .issue-list {
   display: grid;
   gap: 12px;
+}
+
+.empty-state {
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 22px;
+  margin: 0;
+  padding: 18px;
+  color: #8f9bb3;
+  background: rgba(18, 23, 37, 0.42);
 }
 
 .issue-card {

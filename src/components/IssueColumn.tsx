@@ -1,4 +1,4 @@
-import { For, isPending } from "solid-js"
+import { createSignal, For, isPending } from "solid-js"
 import type { Issue } from "../data"
 
 type IssueColumnProps = {
@@ -8,6 +8,8 @@ type IssueColumnProps = {
   getCommentCount: (issue: Issue) => number
   isAddingIssue: boolean
   startAddingIssue: () => void
+  searchQuery: string
+  setSearchQuery: (query: string) => void
 }
 
 export function IssueColumn(props: IssueColumnProps) {
@@ -21,19 +23,37 @@ export function IssueColumn(props: IssueColumnProps) {
         <button type="button" onClick={() => props.startAddingIssue()}>New issue</button>
       </header>
 
-      <div class="issue-list">
-        <For each={props.issues}>{issue => <IssueCard issue={issue} selectedIssue={props.selectedIssue} selectIssue={props.selectIssue} commentCount={props.getCommentCount(issue)} isAddingIssue={props.isAddingIssue} />}</For>
+      <label class="search-field" for="issue-search">
+        <input
+          id="issue-search"
+          type="search"
+          placeholder="Title, area, author, priority..."
+          value={props.searchQuery}
+          onInput={e => props.setSearchQuery(e.target.value)}
+        />
+      </label>
+
+      <div class="issue-list" style={{ opacity: isPending(() => props.issues.length) ? 0.5 : 1 }}>
+        <For each={props.issues} fallback={<p class="empty-state">No issues match your search.</p>}>
+          {issue =>
+            <IssueCard
+              issue={issue}
+              selectedIssue={props.selectedIssue}
+              selectIssue={props.selectIssue}
+              commentCount={props.getCommentCount(issue)}
+              isAddingIssue={props.isAddingIssue} />}
+        </For>
       </div>
     </section>
   )
 }
 
-function IssueCard(props: { issue: Issue, selectedIssue: Issue, selectIssue: (issue: Issue) => void, commentCount: number, isAddingIssue: boolean }) {
+function IssueCard(props: { issue: Issue, selectedIssue?: Issue, selectIssue: (issue: Issue) => void, commentCount: number, isAddingIssue: boolean }) {
   return (
     <article
-      class={props.selectedIssue.id === props.issue.id && !props.isAddingIssue ? "issue-card active" : "issue-card"}
+      class={props.selectedIssue?.id === props.issue.id && !props.isAddingIssue ? "issue-card active" : "issue-card"}
       onClick={() => props.selectIssue(props.issue)}
-      style={{ cursor: "pointer", opacity: props.selectedIssue.id === props.issue.id && !props.isAddingIssue && isPending(() => props.selectedIssue) ? 0.5 : 1 }}>
+      style={{ cursor: "pointer" }}>
       <div class="issue-card-header">
         <span class="status-dot" aria-hidden="true" />
         <span class="issue-number">#{props.issue.id}</span>
