@@ -45,14 +45,12 @@ export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: 
     <section class="detail-panel" aria-label="Selected issue details" style={{ opacity: isPending(() => props.issue) ? 0.5 : 1 }}>
       <IssueHeader issue={props.issue} />
       <IssueSummary issue={props.issue} />
-      <Loading fallback={<LoadingState label="Loading comments" detail="Preparing the timeline." />}>
-        <div style={{ opacity: 1 }}>
-          <Timeline issue={props.issue} comments={optimisticComments} retryComment={retryComment} />
-        </div>
-        <Show when={props.issue.id} keyed>
-          <CommentComposer addCommentAction={addCommentAction} />
-        </Show>
-      </Loading>
+      <div style={{ opacity: 1 }}>
+        <Timeline issue={props.issue} comments={optimisticComments} retryComment={retryComment} />
+      </div>
+      <Show when={props.issue.id} keyed>
+        <CommentComposer addCommentAction={addCommentAction} />
+      </Show>
     </section>
   )
 }

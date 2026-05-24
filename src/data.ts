@@ -14,6 +14,12 @@ export type Issue = {
   description: string
 }
 
+export type NewIssueInput = {
+  title: string
+  area: string
+  description: string
+}
+
 export type Comment = {
   id: string
   author: string
@@ -162,4 +168,3 @@ export const commentsByIssueId: CommentsByIssueId = {
 }
 
 export const labels = ["bug", "sync", "frontend", "accessibility", "design"]
-

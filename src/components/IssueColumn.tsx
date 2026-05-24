@@ -6,6 +6,8 @@ type IssueColumnProps = {
   selectIssue: (issue: Issue) => void
   selectedIssue: Issue
   getCommentCount: (issue: Issue) => number
+  isAddingIssue: boolean
+  startAddingIssue: () => void
 }
 
 export function IssueColumn(props: IssueColumnProps) {
@@ -16,21 +18,22 @@ export function IssueColumn(props: IssueColumnProps) {
           <p class="eyebrow">Project</p>
           <h2>solid-core</h2>
         </div>
+        <button type="button" onClick={() => props.startAddingIssue()}>New issue</button>
       </header>
 
       <div class="issue-list">
-        <For each={props.issues}>{issue => <IssueCard issue={issue} selectedIssue={props.selectedIssue} selectIssue={props.selectIssue} commentCount={props.getCommentCount(issue)} />}</For>
+        <For each={props.issues}>{issue => <IssueCard issue={issue} selectedIssue={props.selectedIssue} selectIssue={props.selectIssue} commentCount={props.getCommentCount(issue)} isAddingIssue={props.isAddingIssue} />}</For>
       </div>
     </section>
   )
 }
 
-function IssueCard(props: { issue: Issue, selectedIssue: Issue, selectIssue: (issue: Issue) => void, commentCount: number }) {
+function IssueCard(props: { issue: Issue, selectedIssue: Issue, selectIssue: (issue: Issue) => void, commentCount: number, isAddingIssue: boolean }) {
   return (
     <article
-      class={props.selectedIssue.id === props.issue.id ? "issue-card active" : "issue-card"}
+      class={props.selectedIssue.id === props.issue.id && !props.isAddingIssue ? "issue-card active" : "issue-card"}
       onClick={() => props.selectIssue(props.issue)}
-      style={{ cursor: "pointer", opacity: props.selectedIssue.id === props.issue.id && isPending(() => props.selectedIssue) ? 0.5 : 1 }}>
+      style={{ cursor: "pointer", opacity: props.selectedIssue.id === props.issue.id && !props.isAddingIssue && isPending(() => props.selectedIssue) ? 0.5 : 1 }}>
       <div class="issue-card-header">
         <span class="status-dot" aria-hidden="true" />
         <span class="issue-number">#{props.issue.id}</span>

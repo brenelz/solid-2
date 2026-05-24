@@ -124,6 +124,8 @@ button.secondary,
 }
 
 .search-field input,
+.new-issue-page input,
+.new-issue-page textarea,
 .composer textarea {
   width: 100%;
   box-sizing: border-box;
@@ -134,8 +136,30 @@ button.secondary,
   outline: none;
 }
 
-.search-field input {
+.search-field input,
+.new-issue-page input {
   padding: 13px 14px;
+}
+
+.new-issue-page {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 26px;
+  padding: 20px;
+  background: rgba(18, 23, 37, 0.82);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.24);
+}
+
+.new-issue-page label {
+  color: #8f9bb3;
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.new-issue-page textarea {
+  resize: vertical;
+  padding: 14px;
 }
 
 .filter-row {
