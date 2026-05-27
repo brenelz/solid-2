@@ -1,8 +1,8 @@
 import { DetailPanel } from "./components/DetailPanel"
 import { IssueColumn } from "./components/IssueColumn"
-import { addComment, addIssue, searchIssues } from "./api"
+import { addComment, addIssue, searchIssues, updateIssueStatus } from "./api"
 import "./App.css"
-import { action, createOptimistic, createSignal, createStore, flush, latest, Loading, refresh, Show } from "solid-js"
+import { action, createOptimistic, createSignal, createStore, latest, refresh, Show } from "solid-js"
 import type { Comment, Issue, NewIssueInput } from "./data"
 
 export default function App() {
@@ -40,11 +40,21 @@ export default function App() {
     selectIssue(issue);
   });
 
+  const updateIssueStatusAction = action(function* (issueId: number, status: string) {
+    const updatedIssue = yield updateIssueStatus(issueId, status);
+    setIssues(issues => {
+      const issue = issues.find(issue => issue.id === issueId);
+      if (issue) {
+        Object.assign(issue, updatedIssue);
+      }
+    });
+  });
+
   return (
     <main class="app-shell">
       <IssueColumn issues={issues} searchQuery={searchQuery()} setSearchQuery={setSearchQuery} selectedIssue={latest(selectedIssue)} selectIssue={selectIssue} getCommentCount={getCommentCount} isAddingIssue={isAddingIssue()} startAddingIssue={() => setIsAddingIssue(true)} />
       <Show when={isAddingIssue()} fallback={
-        <DetailPanel issue={selectedIssue()} saveCommentAction={saveCommentAction} />
+        <DetailPanel issue={selectedIssue()} saveCommentAction={saveCommentAction} updateIssueStatusAction={updateIssueStatusAction} />
       }>
         <NewIssuePage saveIssueAction={saveIssueAction} cancel={() => setIsAddingIssue(false)} />
       </Show>

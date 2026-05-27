@@ -1,13 +1,12 @@
-import { action, createOptimistic, createOptimisticStore, createSignal, flush, For, isPending, Loading, onSettled, refresh, Show } from "solid-js"
+import { action, createOptimistic, createOptimisticStore, createSignal, flush, For, isPending, onSettled, refresh, Show } from "solid-js"
 import type { Comment, Issue } from "../data"
 import { getComments } from "../api";
-import { LoadingState } from "./LoadingState";
 
 type CommentWithErrored = Comment & { id?: string, errored?: boolean };
 
 const erroredComments: CommentWithErrored[] = [];
 
-export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: number, comment: Comment) => Promise<unknown> }) {
+export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: number, comment: Comment) => Promise<unknown>, updateIssueStatusAction: (issueId: number, status: string) => Promise<unknown> }) {
   const [optimisticComments, setOptimisticComments] = createOptimisticStore<CommentWithErrored[]>(async () => {
     const comments = await getComments(props.issue.id);
     return comments.concat(erroredComments).sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt));
@@ -43,7 +42,7 @@ export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: 
 
   return (
     <section class="detail-panel" aria-label="Selected issue details" style={{ opacity: isPending(() => props.issue) ? 0.5 : 1 }}>
-      <IssueHeader issue={props.issue} />
+      <IssueHeader issue={props.issue} updateIssueStatusAction={props.updateIssueStatusAction} />
       <IssueSummary issue={props.issue} />
       <div style={{ opacity: 1 }}>
         <Timeline issue={props.issue} comments={optimisticComments} retryComment={retryComment} />
@@ -55,14 +54,28 @@ export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: 
   )
 }
 
-function IssueHeader(props: { issue: Issue }) {
+function IssueHeader(props: { issue: Issue, updateIssueStatusAction: (issueId: number, status: string) => Promise<unknown> }) {
+  const [updatingStatus, setUpdatingStatus] = createOptimistic(false);
+  const isOpen = () => props.issue.status === "Open";
+  const nextStatus = () => isOpen() ? "Closed" : "Open";
+
+  const updateStatus = async () => {
+    setUpdatingStatus(true);
+    await props.updateIssueStatusAction(props.issue.id, nextStatus());
+  };
+
   return (
     <header class="detail-header">
       <div>
         <p class="eyebrow">Selected Issue</p>
         <h2>{props.issue.title}</h2>
       </div>
-      <span class="pill">{props.issue.status}</span>
+      <div class="status-actions">
+        <span class="pill">{props.issue.status}</span>
+        <button class="secondary" type="button" onClick={updateStatus} disabled={updatingStatus()} style={{ opacity: updatingStatus() ? 0.5 : 1 }}>
+          {updatingStatus() ? "Updating..." : isOpen() ? "Close" : props.issue.status === "Closed" ? "Reopen" : "Open"}
+        </button>
+      </div>
     </header>
   )
 }

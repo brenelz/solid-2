@@ -82,6 +82,12 @@ h3 {
   gap: 16px;
 }
 
+.status-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .issue-column .toolbar {
   margin-bottom: 28px;
 }
@@ -424,6 +430,7 @@ button.secondary,
 
   .toolbar,
   .detail-header,
+  .status-actions,
   .composer-actions {
     align-items: flex-start;
     flex-direction: column;

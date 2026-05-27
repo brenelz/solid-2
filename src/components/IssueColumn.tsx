@@ -1,4 +1,4 @@
-import { createSignal, For, isPending } from "solid-js"
+import { For, isPending } from "solid-js"
 import type { Issue } from "../data"
 
 type IssueColumnProps = {

@@ -52,6 +52,18 @@ export const addIssue = async (input: NewIssueInput) => {
     return structuredClone(issue);
 }
 
+export const updateIssueStatus = async (issueId: number, status: string) => {
+    await new Promise(resolve => setTimeout(resolve, 400))
+    const issue = issues.find(issue => issue.id === issueId);
+    if (!issue) {
+        throw new Error("Issue not found");
+    }
+
+    issue.status = status;
+    issue.updated = "Just now";
+    return structuredClone(issue);
+}
+
 export const addComment = async (issueId: number, comment: Comment) => {
     await new Promise(resolve => setTimeout(resolve, 2000))
     if (Math.random() < 0.5) {
