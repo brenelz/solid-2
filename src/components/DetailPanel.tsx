@@ -6,7 +6,7 @@ type CommentWithErrored = Comment & { id?: string, errored?: boolean };
 
 const erroredComments: CommentWithErrored[] = [];
 
-export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: number, comment: Comment) => Promise<unknown>, updateIssueStatusAction: (issueId: number, status: string) => Promise<unknown> }) {
+export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: number, comment: Comment) => Promise<unknown>, updateIssueStatusAction: (issueId: number, status: string) => Promise<unknown>, updateIssueTitleAction: (issueId: number, title: string) => Promise<unknown> }) {
   const [optimisticComments, setOptimisticComments] = createOptimisticStore<CommentWithErrored[]>(async () => {
     const comments = await getComments(props.issue.id);
     return comments.concat(erroredComments).sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt));
@@ -42,8 +42,8 @@ export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: 
 
   return (
     <section class="detail-panel" aria-label="Selected issue details" style={{ opacity: isPending(() => props.issue) ? 0.5 : 1 }}>
-      <IssueHeader issue={props.issue} updateIssueStatusAction={props.updateIssueStatusAction} />
-      <IssueSummary issue={props.issue} />
+      <IssueHeader issue={props.issue} />
+      <IssueSummary issue={props.issue} updateIssueStatusAction={props.updateIssueStatusAction} updateIssueTitleAction={props.updateIssueTitleAction} />
       <div style={{ opacity: 1 }}>
         <Timeline issue={props.issue} comments={optimisticComments} retryComment={retryComment} />
       </div>
@@ -54,8 +54,21 @@ export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: 
   )
 }
 
-function IssueHeader(props: { issue: Issue, updateIssueStatusAction: (issueId: number, status: string) => Promise<unknown> }) {
+function IssueHeader(props: { issue: Issue }) {
+  return (
+    <header class="detail-header">
+      <div>
+        <p class="eyebrow">Selected Issue</p>
+        <h2>{props.issue.title}</h2>
+      </div>
+      <span class="pill">{props.issue.status}</span>
+    </header>
+  )
+}
+
+function IssueSummary(props: { issue: Issue, updateIssueStatusAction: (issueId: number, status: string) => Promise<unknown>, updateIssueTitleAction: (issueId: number, title: string) => Promise<unknown> }) {
   const [updatingStatus, setUpdatingStatus] = createOptimistic(false);
+  const [updatingTitle, setUpdatingTitle] = createOptimistic(false);
   const isOpen = () => props.issue.status === "Open";
   const nextStatus = () => isOpen() ? "Closed" : "Open";
 
@@ -64,25 +77,25 @@ function IssueHeader(props: { issue: Issue, updateIssueStatusAction: (issueId: n
     await props.updateIssueStatusAction(props.issue.id, nextStatus());
   };
 
-  return (
-    <header class="detail-header">
-      <div>
-        <p class="eyebrow">Selected Issue</p>
-        <h2>{props.issue.title}</h2>
-      </div>
-      <div class="status-actions">
-        <span class="pill">{props.issue.status}</span>
-        <button class="secondary" type="button" onClick={updateStatus} disabled={updatingStatus()} style={{ opacity: updatingStatus() ? 0.5 : 1 }}>
-          {updatingStatus() ? "Updating..." : isOpen() ? "Close" : props.issue.status === "Closed" ? "Reopen" : "Open"}
-        </button>
-      </div>
-    </header>
-  )
-}
+  const saveTitle = async (value: string) => {
+    const nextTitle = value.trim();
+    if (!nextTitle || nextTitle === props.issue.title) return;
 
-function IssueSummary(props: { issue: Issue }) {
+    setUpdatingTitle(true);
+    await props.updateIssueTitleAction(props.issue.id, nextTitle);
+  };
+
   return (
     <div class="summary-card">
+      <label class="inline-edit" for="issue-title-edit">
+        <span>Title</span>
+        <input
+          id="issue-title-edit"
+          value={props.issue.title}
+          onInput={e => saveTitle(e.currentTarget.value)}
+
+        />
+      </label>
       <div class="summary-grid">
         <div>
           <span>Assignee</span>
@@ -100,6 +113,12 @@ function IssueSummary(props: { issue: Issue }) {
       <p>
         {props.issue.description}
       </p>
+      <div class="issue-body-actions">
+        <span>{updatingTitle() ? "Saving title..." : null}</span>
+        <button class="secondary" type="button" onClick={updateStatus} disabled={updatingStatus()}>
+          {updatingStatus() ? "Updating..." : isOpen() ? "Close" : props.issue.status === "Closed" ? "Reopen" : "Open"}
+        </button>
+      </div>
     </div>
   )
 }

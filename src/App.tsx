@@ -1,6 +1,6 @@
 import { DetailPanel } from "./components/DetailPanel"
 import { IssueColumn } from "./components/IssueColumn"
-import { addComment, addIssue, searchIssues, updateIssueStatus } from "./api"
+import { addComment, addIssue, searchIssues, updateIssueStatus, updateIssueTitle } from "./api"
 import "./App.css"
 import { action, createOptimistic, createSignal, createStore, latest, refresh, Show } from "solid-js"
 import type { Comment, Issue, NewIssueInput } from "./data"
@@ -41,11 +41,22 @@ export default function App() {
   });
 
   const updateIssueStatusAction = action(function* (issueId: number, status: string) {
-    const updatedIssue = yield updateIssueStatus(issueId, status);
+    yield updateIssueStatus(issueId, status);
     setIssues(issues => {
-      const issue = issues.find(issue => issue.id === issueId);
+      const issue = issues.find(i => i.id === issueId);
       if (issue) {
-        Object.assign(issue, updatedIssue);
+        issue.status = status;
+      }
+    });
+  });
+
+  const updateIssueTitleAction = action(function* (issueId: number, title: string) {
+    yield updateIssueTitle(issueId, title);
+    setIssues(issues => {
+      const issue = issues.find(i => i.id === issueId);
+      if (issue) {
+        issue.title = title;
+        issue.updated = "Just now";
       }
     });
   });
@@ -54,7 +65,7 @@ export default function App() {
     <main class="app-shell">
       <IssueColumn issues={issues} searchQuery={searchQuery()} setSearchQuery={setSearchQuery} selectedIssue={latest(selectedIssue)} selectIssue={selectIssue} getCommentCount={getCommentCount} isAddingIssue={isAddingIssue()} startAddingIssue={() => setIsAddingIssue(true)} />
       <Show when={isAddingIssue()} fallback={
-        <DetailPanel issue={selectedIssue()} saveCommentAction={saveCommentAction} updateIssueStatusAction={updateIssueStatusAction} />
+        <DetailPanel issue={selectedIssue()} saveCommentAction={saveCommentAction} updateIssueStatusAction={updateIssueStatusAction} updateIssueTitleAction={updateIssueTitleAction} />
       }>
         <NewIssuePage saveIssueAction={saveIssueAction} cancel={() => setIsAddingIssue(false)} />
       </Show>

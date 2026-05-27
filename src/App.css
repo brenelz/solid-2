@@ -82,10 +82,12 @@ h3 {
   gap: 16px;
 }
 
-.status-actions {
+.issue-body-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 18px;
 }
 
 .issue-column .toolbar {
@@ -142,6 +144,7 @@ button.secondary,
 }
 
 .search-field input,
+.inline-edit input,
 .new-issue-page input,
 .new-issue-page textarea,
 .composer textarea {
@@ -155,6 +158,7 @@ button.secondary,
 }
 
 .search-field input:focus,
+.inline-edit input:focus,
 .new-issue-page input:focus,
 .new-issue-page textarea:focus,
 .composer textarea:focus {
@@ -163,8 +167,22 @@ button.secondary,
 }
 
 .search-field input,
+.inline-edit input,
 .new-issue-page input {
   padding: 13px 14px;
+}
+
+.inline-edit {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.inline-edit span,
+.issue-body-actions span {
+  color: #8f9bb3;
+  font-size: 0.82rem;
+  font-weight: 750;
 }
 
 .new-issue-page {
@@ -430,7 +448,6 @@ button.secondary,
 
   .toolbar,
   .detail-header,
-  .status-actions,
   .composer-actions {
     align-items: flex-start;
     flex-direction: column;
