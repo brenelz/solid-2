@@ -1,12 +1,10 @@
-import { For, isPending } from "solid-js"
+import { For, isPending, latest } from "solid-js"
 import type { Issue } from "../data"
 
 type IssueColumnProps = {
   issues: readonly Issue[]
   selectIssue: (issue: Issue) => void
-  selectedIssue: Issue
-  getCommentCount: (issue: Issue) => number
-  isAddingIssue: boolean
+  selectedIssue?: Issue
   startAddingIssue: () => void
   searchQuery: string
   setSearchQuery: (query: string) => void
@@ -28,32 +26,31 @@ export function IssueColumn(props: IssueColumnProps) {
           id="issue-search"
           type="search"
           placeholder="Title, area, author, priority..."
-          value={props.searchQuery}
+          value={latest(() => props.searchQuery)}
           onInput={e => props.setSearchQuery(e.target.value)}
         />
       </label>
 
-      <div class="issue-list" style={{ opacity: isPending(() => props.issues.length) ? 0.5 : 1 }}>
+      <div class="issue-list" style={{ opacity: isPending(() => props.searchQuery) ? 0.5 : 1 }}>
         <For each={props.issues} fallback={<p class="empty-state">No issues match your search.</p>}>
           {issue =>
             <IssueCard
               issue={issue}
               selectedIssue={props.selectedIssue}
               selectIssue={props.selectIssue}
-              commentCount={props.getCommentCount(issue)}
-              isAddingIssue={props.isAddingIssue} />}
+            />}
         </For>
       </div>
     </section>
   )
 }
 
-function IssueCard(props: { issue: Issue, selectedIssue?: Issue, selectIssue: (issue: Issue) => void, commentCount: number, isAddingIssue: boolean }) {
+function IssueCard(props: { issue: Issue, selectedIssue?: Issue, selectIssue: (issue: Issue) => void }) {
   return (
     <article
-      class={props.selectedIssue?.id === props.issue.id && !props.isAddingIssue ? "issue-card active" : "issue-card"}
       onClick={() => props.selectIssue(props.issue)}
-      style={{ cursor: "pointer" }}>
+      style={{ cursor: "pointer" }}
+      class={props.selectedIssue?.id === props.issue.id ? "issue-card active" : "issue-card"}>
       <div class="issue-card-header">
         <span class="status-dot" aria-hidden="true" />
         <span class="issue-number">#{props.issue.id}</span>
@@ -66,7 +63,7 @@ function IssueCard(props: { issue: Issue, selectedIssue?: Issue, selectIssue: (i
         <span>{props.issue.updated}</span>
       </div>
       <div class="issue-stats" aria-label="Issue activity">
-        <span>{props.commentCount} comments</span>
+        <span>{props.issue.comments} comments</span>
         <span>{props.issue.reactions} reactions</span>
       </div>
     </article >

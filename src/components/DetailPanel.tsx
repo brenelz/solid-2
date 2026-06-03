@@ -1,14 +1,14 @@
-import { action, createOptimistic, createOptimisticStore, createSignal, flush, For, isPending, onSettled, refresh, Show } from "solid-js"
+import { action, createOptimisticStore, createSignal, flush, For, isPending, latest, onSettled, refresh, Show } from "solid-js"
 import type { Comment, Issue } from "../data"
 import { getComments } from "../api";
 
-type CommentWithErrored = Comment & { id?: string, errored?: boolean };
+type CommentWithErrored = Comment & { id?: string, errored?: boolean, retrying?: boolean };
 
 const erroredComments: CommentWithErrored[] = [];
 
-export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: number, comment: Comment) => Promise<unknown>, updateIssueStatusAction: (issueId: number, status: string) => Promise<unknown>, updateIssueTitleAction: (issueId: number, title: string) => Promise<unknown> }) {
+export function DetailPanel(props: { issue?: Issue, saveCommentAction: (issueId: number, comment: Comment) => Promise<unknown>, updateIssueStatusAction: (issueId: number, status: string) => Promise<unknown>, updateIssueTitleAction: (issueId: number, title: string) => Promise<unknown> }) {
   const [optimisticComments, setOptimisticComments] = createOptimisticStore<CommentWithErrored[]>(async () => {
-    const comments = await getComments(props.issue.id);
+    const comments = await getComments(props.issue!.id);
     return comments.concat(erroredComments).sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt));
   }, []);
 
@@ -20,7 +20,7 @@ export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: 
     });
 
     try {
-      yield props.saveCommentAction(props.issue.id, newComment);
+      yield props.saveCommentAction(props.issue!.id, newComment);
     } catch (error) {
       erroredComments.push({ ...newComment, errored: true });
     }
@@ -29,7 +29,10 @@ export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: 
 
   const retryComment = action(function* (comment: CommentWithErrored) {
     try {
-      yield props.saveCommentAction(props.issue.id, comment);
+      setOptimisticComments(comments => {
+        comments.find(c => c.id === comment.id)!.retrying = true;
+      });
+      yield props.saveCommentAction(props.issue!.id, comment);
       const index = erroredComments.findIndex(c => c.id === comment.id);
       if (index !== -1) {
         erroredComments.splice(index, 1);
@@ -41,14 +44,20 @@ export function DetailPanel(props: { issue: Issue, saveCommentAction: (issueId: 
   });
 
   return (
-    <section class="detail-panel" aria-label="Selected issue details" style={{ opacity: isPending(() => props.issue) ? 0.5 : 1 }}>
-      <IssueHeader issue={props.issue} />
-      <IssueSummary issue={props.issue} updateIssueStatusAction={props.updateIssueStatusAction} updateIssueTitleAction={props.updateIssueTitleAction} />
-      <div style={{ opacity: 1 }}>
-        <Timeline issue={props.issue} comments={optimisticComments} retryComment={retryComment} />
-      </div>
-      <Show when={props.issue.id} keyed>
-        <CommentComposer addCommentAction={addCommentAction} />
+    <section class="detail-panel" aria-label="Selected issue details">
+      <Show when={props.issue} fallback={"No Issue Found"}>
+        {issue => (
+          <>
+            <IssueHeader issue={issue()} />
+            <IssueSummary issue={issue()} updateIssueStatusAction={props.updateIssueStatusAction} updateIssueTitleAction={props.updateIssueTitleAction} />
+            <div style={{ opacity: 1 }}>
+              <Timeline issue={issue()} comments={optimisticComments} retryComment={retryComment} />
+            </div>
+            <Show when={issue().id} keyed>
+              <CommentComposer addCommentAction={addCommentAction} />
+            </Show>
+          </>
+        )}
       </Show>
     </section>
   )
@@ -67,13 +76,10 @@ function IssueHeader(props: { issue: Issue }) {
 }
 
 function IssueSummary(props: { issue: Issue, updateIssueStatusAction: (issueId: number, status: string) => Promise<unknown>, updateIssueTitleAction: (issueId: number, title: string) => Promise<unknown> }) {
-  const [updatingStatus, setUpdatingStatus] = createOptimistic(false);
-  const [updatingTitle, setUpdatingTitle] = createOptimistic(false);
   const isOpen = () => props.issue.status === "Open";
   const nextStatus = () => isOpen() ? "Closed" : "Open";
 
   const updateStatus = async () => {
-    setUpdatingStatus(true);
     await props.updateIssueStatusAction(props.issue.id, nextStatus());
   };
 
@@ -81,7 +87,6 @@ function IssueSummary(props: { issue: Issue, updateIssueStatusAction: (issueId: 
     const nextTitle = value.trim();
     if (!nextTitle || nextTitle === props.issue.title) return;
 
-    setUpdatingTitle(true);
     await props.updateIssueTitleAction(props.issue.id, nextTitle);
   };
 
@@ -114,9 +119,9 @@ function IssueSummary(props: { issue: Issue, updateIssueStatusAction: (issueId: 
         {props.issue.description}
       </p>
       <div class="issue-body-actions">
-        <span>{updatingTitle() ? "Saving title..." : null}</span>
-        <button class="secondary" type="button" onClick={updateStatus} disabled={updatingStatus()}>
-          {updatingStatus() ? "Updating..." : isOpen() ? "Close" : props.issue.status === "Closed" ? "Reopen" : "Open"}
+        <span>{isPending(() => props.issue.title) ? "Saving title..." : null}</span>
+        <button class="secondary" type="button" onClick={updateStatus} disabled={isPending(() => props.issue.status)}>
+          {isPending(() => props.issue.status) ? "Updating..." : isOpen() ? "Close" : props.issue.status === "Closed" ? "Reopen" : "Open"}
         </button>
       </div>
     </div>
@@ -136,7 +141,6 @@ function Timeline(props: { issue: Issue, comments: readonly CommentWithErrored[]
 }
 
 function CommentCard(props: { comment: CommentWithErrored, retryComment: (comment: CommentWithErrored) => void }) {
-  const [retrying, setRetrying] = createOptimistic(false);
   return (
     <article class="comment-card">
       <div class="avatar" aria-hidden="true">{props.comment.author.charAt(0)}</div>
@@ -144,9 +148,8 @@ function CommentCard(props: { comment: CommentWithErrored, retryComment: (commen
         <div class="comment-heading">
           <strong>{props.comment.author}</strong>
           <span>{props.comment.time ?? (props.comment.errored ? <button onClick={() => {
-            setRetrying(true);
             props.retryComment(props.comment);
-          }}>{retrying() ? "Retrying..." : "Retry"}</button> : "Saving...")}</span>
+          }}>{isPending(() => props.comment.retrying) ? "Retrying..." : "Retry"}</button> : "Saving...")}</span>
         </div>
         <p>{props.comment.body}</p>
       </div>

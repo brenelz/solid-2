@@ -2,56 +2,54 @@ import { DetailPanel } from "./components/DetailPanel"
 import { IssueColumn } from "./components/IssueColumn"
 import { addComment, addIssue, searchIssues, updateIssueStatus, updateIssueTitle } from "./api"
 import "./App.css"
-import { action, createOptimistic, createSignal, createStore, latest, refresh, Show } from "solid-js"
+import { action, createMemo, createOptimisticStore, createSignal, isPending, latest, refresh, Show } from "solid-js"
 import type { Comment, Issue, NewIssueInput } from "./data"
 
 export default function App() {
   const [searchQuery, setSearchQuery] = createSignal('');
-  const [issues, setIssues] = createStore(() => searchIssues(searchQuery()), []);
-  const [selectedIssue, setSelectedIssue] = createSignal(() => issues[0]);
+  const [issues, setIssues] = createOptimisticStore(() => searchIssues(searchQuery()), []);
+  const [selectedIssueId, setSelectedIssueId] = createSignal(() => issues[0].id);
+  const selectedIssue = createMemo(() => issues.find(i => i.id === selectedIssueId()));
   const [isAddingIssue, setIsAddingIssue] = createSignal(false);
-  const [optimisticCommentCount, setOptimisticCommentCount] = createOptimistic(() => selectedIssue().comments);
 
   const selectIssue = (issue: Issue) => {
-    setIsAddingIssue(false);
-    setSelectedIssue(issue);
-  }
-
-  const getCommentCount = (issue: Issue) => {
-    return selectedIssue().id === issue.id ? optimisticCommentCount() : issue.comments;
+    setSelectedIssueId(issue.id);
   }
 
   const saveCommentAction = action(function* (issueId: number, comment: Comment) {
-    setOptimisticCommentCount(commentCount => commentCount + 1);
-
-    const comments = yield addComment(issueId, comment);
-
     setIssues(issues => {
       const issue = issues.find(i => i.id === issueId);
       if (issue) {
-        issue.comments = comments.length;
+        issue.comments++;
       }
     });
+    yield addComment(issueId, comment);
+    refresh(issues);
+
   });
 
   const saveIssueAction = action(function* (input: NewIssueInput) {
+    setIssues(d => {
+      d.push(input as any);
+    })
     const issue = yield addIssue(input);
+    setSelectedIssueId(issue.id);
+    setIsAddingIssue(false);
     refresh(issues);
-    selectIssue(issue);
   });
 
   const updateIssueStatusAction = action(function* (issueId: number, status: string) {
-    yield updateIssueStatus(issueId, status);
     setIssues(issues => {
       const issue = issues.find(i => i.id === issueId);
       if (issue) {
         issue.status = status;
       }
     });
+    yield updateIssueStatus(issueId, status);
+    refresh(issues);
   });
 
   const updateIssueTitleAction = action(function* (issueId: number, title: string) {
-    yield updateIssueTitle(issueId, title);
     setIssues(issues => {
       const issue = issues.find(i => i.id === issueId);
       if (issue) {
@@ -59,28 +57,43 @@ export default function App() {
         issue.updated = "Just now";
       }
     });
+    yield updateIssueTitle(issueId, title);
+    refresh(issues);
   });
 
   return (
     <main class="app-shell">
-      <IssueColumn issues={issues} searchQuery={searchQuery()} setSearchQuery={setSearchQuery} selectedIssue={latest(selectedIssue)} selectIssue={selectIssue} getCommentCount={getCommentCount} isAddingIssue={isAddingIssue()} startAddingIssue={() => setIsAddingIssue(true)} />
+      <IssueColumn
+        issues={issues}
+        searchQuery={searchQuery()}
+        setSearchQuery={setSearchQuery}
+        selectedIssue={latest(selectedIssue)}
+        selectIssue={selectIssue}
+        startAddingIssue={() => setIsAddingIssue(true)}
+      />
       <Show when={isAddingIssue()} fallback={
-        <DetailPanel issue={selectedIssue()} saveCommentAction={saveCommentAction} updateIssueStatusAction={updateIssueStatusAction} updateIssueTitleAction={updateIssueTitleAction} />
+        <DetailPanel
+          issue={selectedIssue()!}
+          saveCommentAction={saveCommentAction}
+          updateIssueStatusAction={updateIssueStatusAction}
+          updateIssueTitleAction={updateIssueTitleAction} />
       }>
-        <NewIssuePage saveIssueAction={saveIssueAction} cancel={() => setIsAddingIssue(false)} />
+        <NewIssuePage
+          addingIssue={isPending(() => issues.length)}
+          saveIssueAction={saveIssueAction}
+          cancel={() => setIsAddingIssue(false)}
+        />
       </Show>
     </main>
   )
 }
 
-function NewIssuePage(props: { saveIssueAction: (input: NewIssueInput) => Promise<unknown>, cancel: () => void }) {
+function NewIssuePage(props: { addingIssue: boolean, saveIssueAction: (input: NewIssueInput) => Promise<unknown>, cancel: () => void }) {
   const [title, setTitle] = createSignal("");
   const [area, setArea] = createSignal("");
   const [description, setDescription] = createSignal("");
-  const [addingIssue, setAddingIssue] = createOptimistic(false);
 
   const submitIssue = async () => {
-    setAddingIssue(true);
     const input = {
       title: title().trim(),
       area: area().trim() || "triage",
@@ -102,7 +115,7 @@ function NewIssuePage(props: { saveIssueAction: (input: NewIssueInput) => Promis
         <button class="secondary" type="button" onClick={() => props.cancel()}>Cancel</button>
       </header>
 
-      <form style={{ opacity: addingIssue() ? 0.5 : 1 }} class="new-issue-page" onSubmit={e => {
+      <form style={{ opacity: props.addingIssue ? 0.5 : 1 }} class="new-issue-page" onSubmit={e => {
         e.preventDefault();
         submitIssue();
       }}>
@@ -130,7 +143,7 @@ function NewIssuePage(props: { saveIssueAction: (input: NewIssueInput) => Promis
         />
         <div class="composer-actions">
           <button type="submit" disabled={!title().trim() || !description().trim()} style={{ opacity: !title().trim() || !description().trim() ? 0.5 : 1 }}>
-            {addingIssue() ? 'Adding...' : 'Add issue'}
+            {props.addingIssue ? 'Adding...' : 'Add issue'}
           </button>
         </div>
       </form>
