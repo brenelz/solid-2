@@ -1,9 +1,15 @@
 import { defineConfig } from 'vite'
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import solid, { serverFunctions } from 'vite-plugin-solid'
 import { nitro } from 'nitro/vite'
 
 export default defineConfig({
   plugins: [
+    tanstackRouter({
+      target: 'solid',
+      autoCodeSplitting: true,
+      indexToken: 'home',
+    }),
     serverFunctions(),
     solid({ ssr: true }),
     nitro(),
@@ -11,7 +17,7 @@ export default defineConfig({
   environments: {
     nitro: {
       resolve: {
-        noExternal: ['@solidjs/router'],
+        noExternal: ['@tanstack/solid-router'],
       },
     },
     client: {

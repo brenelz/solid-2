@@ -1,57 +1,43 @@
 /* @refresh reload */
 import './index.css'
 
-import { renderToStream, type RequestEvent } from '@solidjs/web'
+import {
+  RouterServer,
+  createRequestHandler,
+  renderRouterToStream,
+} from '@tanstack/solid-router/ssr/server'
 import { provideRequestEvent } from '@solidjs/web/storage'
 import manifest from 'virtual:solid-manifest'
 import clientAssets from './entry-client.tsx?assets=client'
 import serverAssets from './entry-server.tsx?assets=ssr'
-import App from './App.tsx'
-import HtmlDocument from './HtmlDocument.tsx'
+import { createAppRouter } from './router.tsx'
 
 const assets = clientAssets.merge(serverAssets)
-const doctype = new TextEncoder().encode('<!doctype html>')
 const devStylePatch = import.meta.env.DEV
   ? (await import('vite-plugin-solid')).devStylePatch
   : undefined
 
 export default {
   fetch(request: Request) {
-    const response: RequestEvent['response'] = {
-      headers: new Headers({
-        'content-type': 'text/html; charset=utf-8',
-      }),
-    }
-
-    return provideRequestEvent({ request, locals: {}, response }, () => {
-      const output = renderToStream(() => (
-        <HtmlDocument
-          assets={assets}
-          viteDev={import.meta.env.DEV}
-          devStylePatch={devStylePatch}
-        >
-          <App url={request.url} />
-        </HtmlDocument>
-      ), {
-        manifest,
-        onError(error) {
-          console.error(error)
-        },
-      })
-      const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>({
-        start(controller) {
-          controller.enqueue(doctype)
-        },
+    return provideRequestEvent({ request, locals: {} }, () => {
+      const handler = createRequestHandler({
+        request,
+        createRouter: () => createAppRouter({
+          assets,
+          viteDev: import.meta.env.DEV,
+          devStylePatch,
+        }),
       })
 
-      void output.pipeTo(writable).catch(error => {
-        console.error('SSR stream failed', error)
-      })
-
-      return new Response(readable, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
+      return handler(({ request, responseHeaders, router }) => {
+        responseHeaders.set('content-type', 'text/html; charset=utf-8')
+        return renderRouterToStream({
+          request,
+          responseHeaders,
+          router,
+          manifest,
+          children: () => <RouterServer router={router} />,
+        })
       })
     })
   },
