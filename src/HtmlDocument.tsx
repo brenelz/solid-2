@@ -41,7 +41,7 @@ export default function HtmlDocument(props: HtmlDocumentProps) {
         <div id="root">{props.children}</div>
         <NoHydration>
           {props.assets?.entry && (
-            <script type="module" src={props.assets.entry} />
+            <script type="module" src={props.assets.entry} async />
           )}
         </NoHydration>
       </body>
