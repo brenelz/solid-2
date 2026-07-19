@@ -1,6 +1,7 @@
+/* @refresh reload */
 import './index.css'
 
-import { renderToStream } from '@solidjs/web'
+import { renderToStream, type RequestEvent } from '@solidjs/web'
 import { provideRequestEvent } from '@solidjs/web/storage'
 import manifest from 'virtual:solid-manifest'
 import clientAssets from './entry-client.tsx?assets=client'
@@ -16,14 +17,20 @@ const devStylePatch = import.meta.env.DEV
 
 export default {
   fetch(request: Request) {
-    return provideRequestEvent({ request, locals: {} }, () => {
+    const response: RequestEvent['response'] = {
+      headers: new Headers({
+        'content-type': 'text/html; charset=utf-8',
+      }),
+    }
+
+    return provideRequestEvent({ request, locals: {}, response }, () => {
       const output = renderToStream(() => (
         <HtmlDocument
           assets={assets}
           viteDev={import.meta.env.DEV}
           devStylePatch={devStylePatch}
         >
-          <App />
+          <App url={request.url} />
         </HtmlDocument>
       ), {
         manifest,
@@ -42,9 +49,9 @@ export default {
       })
 
       return new Response(readable, {
-        headers: {
-          'content-type': 'text/html; charset=utf-8',
-        },
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
       })
     })
   },

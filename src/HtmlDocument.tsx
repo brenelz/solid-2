@@ -24,7 +24,7 @@ export default function HtmlDocument(props: HtmlDocumentProps) {
         <meta charset="UTF-8" />
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Vite + Solid + TS</title>
+        <title>Solid SSR Lab</title>
         <NoHydration>
           {props.assets?.css.map(asset => (
             <link rel="stylesheet" {...asset} />
