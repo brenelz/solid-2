@@ -9,8 +9,14 @@ export default defineConfig({
     nitro(),
   ],
   environments: {
+    nitro: {
+      resolve: {
+        noExternal: ['@solidjs/router'],
+      },
+    },
     client: {
       build: {
+        manifest: true,
         rollupOptions: {
           input: './src/entry-client.tsx',
         },
