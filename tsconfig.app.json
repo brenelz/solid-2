@@ -27,6 +27,7 @@
     "noUncheckedSideEffectImports": true
   },
   "include": [
-    "src"
+    "src",
+    "virtual-solid.d.ts"
   ]
 }

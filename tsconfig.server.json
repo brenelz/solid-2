@@ -1,0 +1,7 @@
+{
+  "extends": "nitro/tsconfig",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.server.tsbuildinfo"
+  },
+  "include": ["server", "virtual-solid.d.ts"]
+}
