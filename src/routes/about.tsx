@@ -1,5 +1,10 @@
-/* @refresh reload */
-export default function About() {
+import { createFileRoute } from '@tanstack/solid-router'
+
+export const Route = createFileRoute('/about')({
+  component: About,
+})
+
+function About() {
   return (
     <section class="page">
       <p class="eyebrow">Route /about</p>

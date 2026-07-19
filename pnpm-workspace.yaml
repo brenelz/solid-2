@@ -2,6 +2,7 @@ resolutionMode: highest
 minimumReleaseAgeExclude:
   - "@dom-expressions/*"
   - "@solidjs/*"
+  - "@tanstack/*"
   - babel-preset-solid
   - solid-js
   - vite-plugin-solid

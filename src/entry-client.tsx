@@ -1,11 +1,12 @@
 /* @refresh reload */
+import { RouterProvider } from '@tanstack/solid-router'
+import { hydrate as hydrateRouter } from '@tanstack/router-core/ssr/client'
 import { hydrate } from '@solidjs/web'
 import './index.css'
-import App from './App.tsx'
-import HtmlDocument from './HtmlDocument.tsx'
+import { createAppRouter } from './router.tsx'
 
-hydrate(() => (
-  <HtmlDocument>
-    <App />
-  </HtmlDocument>
-), document)
+const router = createAppRouter()
+
+await hydrateRouter(router)
+
+hydrate(() => <RouterProvider router={router} />, document)
